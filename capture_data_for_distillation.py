@@ -59,24 +59,7 @@ cart_items = [
 ]
 
 stores = [
-    {
-        "name": "Tesco",
-        "url": "https://www.tesco.com",
-        "store_name": "Tesco",
-        "url_template": "{base_url}/groceries/en-GB/search?query={item}&inputType=free+text"
-    },
-    {
-        "name": "Ocado",
-        "url": "https://www.ocado.com",
-        "store_name": "Ocado",
-        "url_template": "{base_url}/search?entry={item}"
-    },
-    {
-        "name": "Sainsbury",
-        "url": "https://www.sainsburys.co.uk/",
-        "store_name": "Sainsbury",
-        "url_template": "{base_url}/gol-ui/SearchResults/{item}"
-    },
+   
     {
         "name": "ASDA",
         "url": "https://groceries.asda.com/",
