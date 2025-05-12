@@ -13,7 +13,7 @@ from langchain.llms import HuggingFacePipeline
 import os
 from langchain_openai import ChatOpenAI
 from dotenv import load_dotenv
-
+import re
 
 load_dotenv()
 
@@ -31,35 +31,53 @@ llm = ChatOpenAI(
 
 
 cart_items = [
-    {"base_product": "apples", "unit": "kg"},
-    {"base_product": "milk", "unit": "liter"},
-    {"base_product": "Eggs", "unit": "dozen"},
-    {"base_product": "strawberry", "unit": "g"},
-    {"base_product": "banana", "unit": "dozen"},
-    {"base_product": "onion", "unit": "kg"},
-    {"base_product": "potato", "unit": "kg"},
-    {"base_product": "colgate", "unit": "ml"},
-    {"base_product": "digestive bisuits", "unit": "g"},
-    {"base_product": "bread", "unit": "g"},
-    {"base_product": "carrots", "unit": "kg"},
-    {"base_product": "rice", "unit": "kg"},
-    {"base_product": "sausages", "unit": "g"},
-    {"base_product": "butter", "unit": "g"},
-    {"base_product": "cheese", "unit": "g"},
-    {"base_product": "crisps", "unit": "g"},
-    {"base_product": "salt", "unit": "g"},
-    {"base_product": "suger", "unit": "g"},
-    {"base_product": "yoghurt", "unit": "g"},
-    {"base_product": "ham", "unit": "g"},
-    {"base_product": "Coca-Cola Zero Sugar", "unit": "l"},
-    {"base_product": "diet coke", "unit": "l"},
-    {"base_product": "chicken", "unit": "kg"},
-    {"base_product": "spinach", "unit": "g"},
-
+    # {"base_product": "apples", "unit": "kg"},
+    # {"base_product": "milk", "unit": "liter"},
+    # {"base_product": "Eggs", "unit": "dozen"},
+    # {"base_product": "strawberry", "unit": "g"},
+    # {"base_product": "banana", "unit": "dozen"},
+    # {"base_product": "onion", "unit": "kg"},
+    # {"base_product": "potato", "unit": "kg"},
+    # {"base_product": "colgate", "unit": "ml"},
+    # {"base_product": "digestive bisuits", "unit": "g"},
+    # {"base_product": "bread", "unit": "g"},
+    # {"base_product": "carrots", "unit": "kg"},
+    # {"base_product": "rice", "unit": "kg"},
+    # {"base_product": "sausages", "unit": "g"},
+    # {"base_product": "butter", "unit": "g"},
+    # {"base_product": "cheese", "unit": "g"},
+    # {"base_product": "crisps", "unit": "g"},
+    # {"base_product": "salt", "unit": "g"},
+    # {"base_product": "suger", "unit": "g"},
+    # {"base_product": "yoghurt", "unit": "g"},
+    # {"base_product": "ham", "unit": "g"},
+    # {"base_product": "Coca-Cola Zero Sugar", "unit": "l"},
+    # {"base_product": "diet coke", "unit": "l"},
+    # {"base_product": "chicken", "unit": "kg"},
+    # {"base_product": "spinach", "unit": "g"},
+    {"base_product": "aubergine", "unit": "g"},
+    {"base_product": "pineapple", "unit": "g"},
+    {"base_product": "orange juice", "unit": "l"},
+    {"base_product": "mixed fruit juice", "unit": "l"},
+    {"base_product": "oranges", "unit": "g"},
+    {"base_product": "kale", "unit": "g"},
+    {"base_product": "noodles", "unit": "g"},
 ]
 
 stores = [
-   
+  
+    {
+        "name": "Ocado",
+        "url": "https://www.ocado.com",
+        "store_name": "Ocado",
+        "url_template": "{base_url}/search?entry={item}"
+    },
+    {
+        "name": "Sainsbury",
+        "url": "https://www.sainsburys.co.uk/",
+        "store_name": "Sainsbury",
+        "url_template": "{base_url}/gol-ui/SearchResults/{item}"
+    },
     {
         "name": "ASDA",
         "url": "https://groceries.asda.com/",
@@ -68,6 +86,9 @@ stores = [
     }
 ]
 
+def clean_input_content(input_content):
+  cleaned_text = re.sub(r'https?://\S+|\[.*?\]\((https?://\S+)\)', '', input_content)
+  return cleaned_text.strip()
 
 def extract(store,  firecrawl_api_key, cart_items, output_file='products.jsonl'):
     app = FirecrawlApp(api_key=firecrawl_api_key)
@@ -92,7 +113,7 @@ def extract(store,  firecrawl_api_key, cart_items, output_file='products.jsonl')
         elif unit in ["lb", "pound", "pounds"]:
             quantities = ["1lb", "2lb"]
         elif unit in ["dozen", "count", "unit", "piece", "pieces"]:
-            quantities = ["6", "12", "18", "24", "30"]
+            quantities = ["1", "2", "3", "4", "5", "6", "12", "18", "24", "30"]
         else:
             quantities = []
 
@@ -119,6 +140,7 @@ def extract(store,  firecrawl_api_key, cart_items, output_file='products.jsonl')
                 continue  # Skip to the next term if scraping failed
 
             def build_prompt(text):
+                cleaned_text = clean_input_content(text)
                 return f"""
                 You are an expert data extractor.
                 Your task is to extract products and their prices from text. If you find any organic keyword in the text,
@@ -132,7 +154,7 @@ def extract(store,  firecrawl_api_key, cart_items, output_file='products.jsonl')
                 Make sure to remove any qualifiers like "organic", "premium", "fresh", etc., and standardize the product_name.
 
                 Here is the raw input:
-                {text}
+                {cleaned_text}
                 """
 
             for chunk in chunks:

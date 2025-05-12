@@ -7,12 +7,13 @@ import json
 import os
 from time import sleep
 import numpy as np
-from grocery_env import GroceryEnv
 from cart_agent import CartItemAgent
 from store_agent import StoreAgent
 from state import get_state, CacheActor
 from ray.rllib.agents.ppo import PPOTrainer
 from ray.tune.registry import register_env
+from gym.spaces import Discrete, Box
+from grocery_env import GroceryMultiAgentEnv
 
 def train_marl_rllib(cart_items, stores, user_preferences, num_episodes=100):
     ray.init(ignore_reinit_error=True)
