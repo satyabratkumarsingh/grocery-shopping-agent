@@ -55,7 +55,7 @@ config = {
         "cart_items": cart_items,
         "stores": stores,
         "user_preferences": user_preferences,
-        "api_key": "fc-513a37071af448a1996de18c40b45788"
+        "api_key": FIRECRAWL_KEY
     },
     "framework": "torch",
     "num_workers": 2,
