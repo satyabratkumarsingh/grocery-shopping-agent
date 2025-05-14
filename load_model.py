@@ -5,7 +5,8 @@ from transformers import pipeline
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 from dotenv import load_dotenv
-
+import os
+from langchain_openai import ChatOpenAI
 
 def get_llm():
     from dotenv import load_dotenv

@@ -15,6 +15,10 @@ from langchain_core.messages import HumanMessage
 import os
 from langchain_openai import ChatOpenAI
 from dotenv import load_dotenv
+from sentence_transformers import SentenceTransformer, util
+
+similarity_model = SentenceTransformer('all-MiniLM-L6-v2')
+
 
 
 load_dotenv()
@@ -25,19 +29,19 @@ FIRECRAWL_KEY = os.getenv('FIRECRAWL_KEY')
 os.environ["OPENAI_API_KEY"] = OPEN_AI_KEY
 
 @ray.remote
-def extract(store_url, url_template, api_key, cart_items):
+def extract(store, cart_items):
     store_data_product = {}
-    app = FirecrawlApp(api_key=api_key)
+    app = FirecrawlApp(api_key=FIRECRAWL_KEY)
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=2000, chunk_overlap=200)
     llm = get_llm()
-
+    store_url = store["url"]
+    url_template = store["url_template"]
     for item in cart_items:
         base_product = item["base_product"]
+        quantity = item["quantity"]
         search_terms = [
             base_product,
-            f"{base_product} 1l", f"{base_product} 1.5 mobilizingl", f"{base_product} 2l",
-            f"{base_product} 1kg", f"{base_product} 2kg"
-        ] if base_product == "milk" else [base_product, f"{base_product} 1kg", f"{base_product} 2kg"]
+            f"{base_product} {quantity}"]
         variants = []
         for term in search_terms:
             item_url = url_template.format(base_url=store_url.rstrip('/'), item=term.replace(' ', '+'))
@@ -86,20 +90,17 @@ def extract(store_url, url_template, api_key, cart_items):
                 try:
                     # Use LangChain's invoke method for ChatOpenAI
                     response = llm.invoke(prompt)
-                    print("@@@@@@ RESPONSE @@@@@@@@@@@")
-                    print(response)
-                    print('=======================')
                     extracted = json.loads(response)
-                    print('@@@@@@ JSON LOADED @@@@@@@@@@')
-                    print(extracted)
-                    print('=======================')
                     results.extend(extracted)
                     break
                 except (json.JSONDecodeError, Exception) as e:
                     continue
                     
             for result in results:
-                if base_product.lower() in result["product"].lower():
+                embeddings = similarity_model.encode([base_product, result["product"]], convert_to_tensor=True)
+                similarity = util.cos_sim(embeddings[0], embeddings[1]).item()
+
+                if similarity > 0.6 and similarity <=1:
                     try:
                         quantity_str = result["quantity"].lower()
                         quantity = float(quantity_str.replace("l", "").replace("kg", "").replace("lb", ""))
@@ -133,5 +134,6 @@ def extract(store_url, url_template, api_key, cart_items):
                 "unit": item["unit"],
                 "cost_per_unit": float("inf")
             }
+    print('====================')
     print(store_data_product)
     return store_data_product

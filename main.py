@@ -24,15 +24,15 @@ os.environ["OPENAI_API_KEY"] = OPEN_AI_KEY
 
 # Mock data for testing
 cart_items = [
-    {"base_product": "apples", "unit": "kg"},
-    {"base_product": "milk", "unit": "liter"}
+    {"base_product": "apples", "quantity": "1kg"},
+    {"base_product": "milk", "quantity": "1l"}
 ]
 stores = [
     {
         "name": "Tesco",
         "url": "https://www.tesco.com",
         "store_name": "Tesco",
-        "url_template": "{base_url}/groceries/en-GB/search?query={item}&inputType=free+text"
+        "url_template": "{base_url}/groceries/en-GB/search?query={item}"
     },
     {
         "name": "Ocado",
