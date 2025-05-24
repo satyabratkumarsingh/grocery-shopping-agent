@@ -5,3 +5,10 @@
 ## The second part is the distillation where we use the data to finetune gemma3 1B model using GRPO
 ## The final part intrduces multi agent systems using RAY which extracts data from different stores and based on user preferences and provides recommendation. 
 ## We use PPO here to train model. 
+
+
+Running Instructions:
+1. First, capture the data for distillation, run the cappture_data_for_distillation.py
+2. Then Fnetune the Gemma3 (1B) model. rn FineTune_LLM_GRPO.ipynb
+3. Save the model and used saved model to run main.py
+   
